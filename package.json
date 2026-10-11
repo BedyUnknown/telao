@@ -1,0 +1,16 @@
+{
+ "name": "telao",
+ "version": "1.0.0",
+ "main": "server.js",
+ "scripts": {
+  "start": "node server.js"
+ },
+ "dependencies": {
+  "express": "^4.19.2",
+  "ws": "^8.18.0",
+  "@sapphi-red/web-noise-suppressor": "^0.3.5"
+ },
+ "engines": {
+  "node": ">=18"
+ }
+}

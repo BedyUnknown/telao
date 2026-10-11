@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Telão</title>
+<style>
+:root{color-scheme:dark;--fg:#fff;--dim:#8a8a8a;--line:#fff;--soft:#2a2a2a}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#000;color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100dvh;display:flex;padding:16px}
+#hostBox,#viewBox{width:100%;max-width:460px;margin:auto;border:1px solid var(--line);border-radius:16px;padding:20px}
+.card{display:grid;gap:12px;width:100%}
+h1{margin:0 0 4px;font-size:14px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding-bottom:14px;border-bottom:1px solid var(--line)}
+button,input,select{font:inherit;font-size:16px;min-height:44px;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:#000;color:var(--fg);outline:none;transition:background .15s,color .15s}
+button{cursor:pointer}
+button:hover,button:focus-visible,select:focus,input:focus{background:#141414}
+button.p{background:var(--fg);color:#000;font-weight:700;letter-spacing:.04em}
+button.p:hover{background:#d8d8d8}
+button:active{transform:scale(.98)}
+label{display:flex;gap:10px;align-items:center;font-size:14px;color:#ddd;padding:10px 12px;border:1px solid var(--soft);border-radius:10px}
+label:has(select){display:grid;gap:8px}
+label select{width:100%;min-width:0}
+input[type=checkbox]{width:20px;min-height:20px;height:20px;padding:0;accent-color:#fff;flex:none}
+#roomId{font-size:clamp(30px,10vw,44px);letter-spacing:.2em;text-align:center;font-weight:700;padding:14px 0 14px .2em;border:1px solid var(--line);border-radius:12px}
+#code{width:100%;font-size:clamp(24px,8vw,30px);letter-spacing:.3em;text-align:center;padding-left:.3em}
+#code::placeholder{color:#444}
+small,.nsInfo{color:var(--dim);font-size:12px}
+video#prev{width:100%;max-height:40vh;object-fit:contain;border-radius:10px;background:#000;border:1px solid var(--line)}
+#stage{position:fixed;inset:0;height:100dvh;background:#000;overflow:hidden;display:none;z-index:9}
+#v{width:100%;height:100%;object-fit:contain}
+#wait{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;color:var(--dim);letter-spacing:.1em;font-size:13px;text-transform:uppercase;pointer-events:none}
+#bar{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));max-width:620px;margin:0 auto;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;padding:10px;background:rgba(0,0,0,.85);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(6px);transition:opacity .25s,transform .25s,visibility 0s}
+#bar.off{opacity:0;transform:translateY(14px);visibility:hidden;pointer-events:none;transition:opacity .25s,transform .25s,visibility 0s .25s}
+.row{display:flex;gap:8px;align-items:center}
+.row button{flex:none;min-width:44px;padding:8px 12px}
+.row input[type=range]{flex:1;min-width:0;padding:0;border:0;background:transparent;accent-color:#fff}
+.row b{min-width:48px;text-align:right;font-size:14px}
+.row .nsInfo{flex:1;text-align:center}
+[hidden]{display:none!important}
+@media(min-width:900px){#hostBox,#viewBox{max-width:520px;padding:28px}}
+@media(orientation:landscape) and (max-height:500px){   /* celular deitado: barra compacta, 2 colunas */
+#bar{max-width:720px;grid-template-columns:1fr auto;align-items:center;gap:6px 14px;padding:6px 10px;bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+#bar .row:last-child{grid-column:1/-1;justify-content:center}
+#bar .row button{min-height:38px;padding:4px 10px}
+#bar .nsInfo{display:none}
+}
+</style></head><body>
+
+<div class="card" id="hostBox" hidden>
+  <h1>🖥️ Transmitir (PC)</h1>
+  <div id="h1" class="card">
+    <label><input type="checkbox" id="micH" checked> Entrar na call (microfone)</label>
+    <button class="p" id="create">Criar sala</button>
+  </div>
+  <div id="h2" class="card" hidden>
+    <small>ID da sala (passe pro celular):</small>
+    <div id="roomId">-----</div>
+    <label><input type="checkbox" id="shAudio" checked> Transmitir áudio do PC</label>
+    <label>🔈 Áudio da transmissão: <select id="audMode"><option value="window">Só da janela escolhida (a call não entra)</option><option value="system">Sistema inteiro</option></select></label>
+    <label><input type="checkbox" id="aec" checked> Cancelar a call do áudio da tela (software)</label>
+    <label>🎞️ Codec de vídeo: <select id="codec"><option value="auto">Automático</option><option value="h264">H.264 (placa de vídeo)</option><option value="vp9">VP9</option><option value="av1">AV1</option><option value="vp8">VP8</option></select></label>
+    <small id="aecInfo"></small>
+    <small id="restrictInfo"></small>
+    <button id="mmH">🎤 Mutar microfone</button>
+    <label><input type="checkbox" id="enhH" checked> ✨ Melhorar áudio do mic (ruído e voz)</label>
+    <small class="nsInfo"></small>
+    <label>🎙️ Microfone: <select id="inDev"></select></label>
+    <label>🎧 Saída da call: <select id="outDev"><option value="">Padrão</option></select></label>
+    <button class="p" id="share">Iniciar transmissão</button>
+    <button id="stop" hidden>Parar transmissão</button>
+    <video id="prev" muted autoplay playsinline hidden></video>
+    <small id="info"></small>
+  </div>
+</div>
+
+<div class="card" id="viewBox" hidden>
+  <h1>📱 Assistir</h1>
+  <input id="code" inputmode="numeric" maxlength="5" placeholder="00000">
+  <label><input type="checkbox" id="micV" checked> Entrar na call (microfone)</label>
+  <button class="p" id="join">Entrar na sala</button>
+</div>
+
+<div id="stage">
+  <video id="v" autoplay playsinline muted></video>
+  <div id="wait">Aguardando o host transmitir…</div>
+  <div id="bar">
+    <div class="row"><button id="vm">−</button><input type="range" id="vol" min="0" max="3" step="0.05" value="1"><button id="vp">+</button><b id="volT">100%</b></div>
+    <div class="row"><button id="mm">🎤</button><button id="enhV" title="Melhorar áudio do microfone">✨</button><span class="nsInfo"></span><button id="leave">Sair</button></div>
+    <div class="row"><small id="resInfo"></small></div>
+  </div>
+</div>
+
+<script id="echoWk" type="text/plain">
+class EchoSub extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    const S = 1 << 16; this.m = S - 1; this.R = new Float32Array(S); this.X = new Float32Array(S); this.n = 0;
+    this.W = 64; this.w = new Float32Array(64); this.D = -1; this.est = null;
+    this.t = 0; this.nextEst = 48000; this.pt = 0; this.sx = 1e-9; this.se = 1e-9; this.act = 0;
+  }
+  startEst() {   // snapshot de 1 s (decimado por 8) de referência (call) e de tela
+    const N = 6000, dr = new Float32Array(N), dx = new Float32Array(N), m = this.m, base = this.n - 48000;
+    let er = 0, ex = 0;
+    for (let i = 0; i < N; i++) {
+      let a = 0, b = 0;
+      for (let j = 0; j < 8; j++) { const k = (base + i * 8 + j) & m; a += this.R[k]; b += this.X[k]; }
+      dr[i] = a; dx[i] = b; er += a * a; ex += b * b;
+    }
+    if (er < 1e-3 || ex < 1e-3) return;
+    this.est = { dr, dx, L: 0, best: 0, bv: 0, sum: 0, cnt: 0, norm: Math.sqrt(er * ex) };
+  }
+  stepEst() {   // correlação cruzada em fatias, para não travar o áudio
+    const e = this.est, N = 6000, end = Math.min(e.L + 12, 2400);
+    for (; e.L < end; e.L++) {
+      let c = 0; const L = e.L;
+      for (let i = 0; i < N - L; i++) c += e.dx[i + L] * e.dr[i];
+      c = Math.abs(c) / e.norm; e.sum += c; e.cnt++;
+      if (c > e.bv) { e.bv = c; e.best = L; }
+    }
+    if (e.L >= 2400) {
+      if (e.bv > 0.02 && e.bv > 6 * (e.sum / e.cnt)) {
+        const D = Math.max(0, e.best * 8 - 28);
+        if (Math.abs(D - this.D) > 16) this.w.fill(0);
+        this.D = D;
+      }
+      this.est = null;
+    }
+  }
+  process(inputs, outputs) {
+    const a = inputs[0], b = inputs[1], o = outputs[0];
+    if (!a || !a.length) return true;
+    const nch = a.length, len = a[0].length, r = b && b.length ? b[0] : null, m = this.m, W = this.W, w = this.w;
+    for (let i = 0; i < len; i++) {
+      const n = this.n, xm = nch > 1 ? (a[0][i] + a[1][i]) * 0.5 : a[0][i];
+      this.R[n & m] = r ? r[i] : 0; this.X[n & m] = xm;
+      let y = 0;
+      if (this.D >= 0) {
+        const base = n - this.D; let P = 0;
+        for (let k = 0; k < W; k++) { const v = this.R[(base - k) & m]; y += w[k] * v; P += v * v; }
+        if (P > W * 1e-6) {
+          const e = xm - y, g = 0.08 * e / (P + 1e-6);
+          for (let k = 0; k < W; k++) w[k] += g * this.R[(base - k) & m];
+          this.act++; this.sx += xm * xm; this.se += e * e;
+        }
+      }
+      for (let c = 0; c < o.length; c++) o[c][i] = a[Math.min(c, nch - 1)][i] - y;
+      this.n = n + 1;
+    }
+    this.t += len; this.pt += len;
+    if (this.est) this.stepEst();
+    else if (this.t >= this.nextEst && this.n > 48000) { this.nextEst = this.t + (this.D < 0 ? 48000 : 48000 * 6); this.startEst(); }
+    if (this.pt >= 48000) {
+      this.pt = 0;
+      this.port.postMessage({ D: this.D, erle: 10 * Math.log10(this.sx / this.se), act: this.act });
+      this.sx = this.se = 1e-9; this.act = 0;
+    }
+    return true;
+  }
+}
+registerProcessor('echo-sub', EchoSub);
+</script>
+<script>
+const $ = s => document.querySelector(s);
+const mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+const isHost = !mobile && !!navigator.mediaDevices?.getDisplayMedia;
+$('#hostBox').hidden = !isHost;
+$('#viewBox').hidden = isHost;
+if (!window.isSecureContext) alert('Abra por HTTPS (ou localhost), senão tela e microfone não funcionam.');
+
+const ICE = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+let ws, me, hostId, mic = null, screen = null, outId = '';
+let ectx, ewk, refBus, screenRaw = null, aecNode;
+const pcs = {};
+const send = m => ws.readyState === 1 && ws.send(JSON.stringify(m));
+
+function connect(onOpen) {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}`);
+  ws.onopen = () => { onOpen(); setInterval(() => send({ t: 'ping' }), 25000); };
+  ws.onmessage = e => handle(JSON.parse(e.data));
+  ws.onclose = () => { alert('Conexão perdida'); location.reload(); };
+}
+
+let ctx, raw, srcN, rn = null, hpN, anaN, compN, gateN, destN, gateTimer, enh = true, devId, rnTried = false, rnErr = '';
+const nsText = t => document.querySelectorAll('.nsInfo').forEach(e => e.textContent = t);
+async function loadRn() {   // RNNoise: rede neural de supressão de ruído (alternativa livre ao Krisp)
+  rnTried = true;
+  try {
+    const ns = await import('/ns/index.js');
+    const bin = await ns.loadRnnoise({ url: '/ns/rnnoise.wasm', simdUrl: '/ns/rnnoise_simd.wasm' });
+    await ctx.audioWorklet.addModule('/ns/rnnoiseWorklet.js');
+    rn = new ns.RnnoiseWorkletNode(ctx, { wasmBinary: bin, maxChannels: 1 });
+  } catch (e) { console.warn('RNNoise indisponível, usando filtro simples', e); rn = null; rnErr = (e && e.message) || String(e); }
+}
+async function buildMic(id) {
+  if (!ctx) {   // criado direto no clique do usuário (exigência dos navegadores)
+    ctx = new AudioContext({ sampleRate: 48000 });
+    destN = ctx.createMediaStreamDestination();
+    hpN = ctx.createBiquadFilter(); hpN.type = 'highpass'; hpN.frequency.value = 90;
+    anaN = ctx.createAnalyser(); anaN.fftSize = 1024;
+    compN = ctx.createDynamicsCompressor(); compN.threshold.value = -30; compN.ratio.value = 3;
+    gateN = ctx.createGain();
+  }
+  if (!rnTried) await loadRn();
+  const c = { echoCancellation: true, noiseSuppression: enh && !rn, autoGainControl: enh };
+  if (id) c.deviceId = { exact: id };
+  const n = await navigator.mediaDevices.getUserMedia({ audio: c });
+  ctx.resume();
+  if (srcN) srcN.disconnect();
+  if (raw) raw.getTracks().forEach(t => t.stop());
+  raw = n; devId = id; srcN = ctx.createMediaStreamSource(n);
+  wire();
+  mic = destN.stream;   // track de saída fixo: trocar mic/filtro não renegocia a call
+}
+function wire() {
+  [srcN, rn, hpN, anaN, compN, gateN].forEach(x => x && x.disconnect());
+  clearInterval(gateTimer);
+  if (!enh) { srcN.connect(destN); nsText('Filtro desligado'); return; }
+  let last = srcN;
+  if (rn) { srcN.connect(rn); last = rn; }
+  last.connect(hpN); hpN.connect(anaN); anaN.connect(compN); compN.connect(gateN); gateN.connect(destN);
+  nsText(rn ? 'Filtro: RNNoise (IA) ativo' : 'Filtro simples (RNNoise indisponível' + (rnErr ? ': ' + rnErr : '') + ')');
+  const buf = new Float32Array(anaN.fftSize); let lastVoice = 0, floor = 0.01;
+  gateTimer = setInterval(() => {   // noise gate leve: abaixa o som quando não há voz
+    anaN.getFloatTimeDomainData(buf);
+    let sum = 0; for (const v of buf) sum += v * v;
+    const now = performance.now();
+    const rms = Math.sqrt(sum / buf.length);
+    floor = Math.min(0.05, rms < floor ? rms : floor * 1.002);   // piso de ruído adaptativo
+    if (rms > Math.max(0.004, floor * 3)) lastVoice = now;
+    const open = now - lastVoice < 400;
+    gateN.gain.setTargetAtTime(open ? 1 : 0.05, ctx.currentTime, open ? 0.01 : 0.1);
+  }, 20);
+}
+async function setEnh(v) {   // liga/desliga SEM reabrir o microfone (não mexe no roteamento de áudio do celular)
+  enh = v;
+  if (!mic) return;
+  try { await raw.getAudioTracks()[0].applyConstraints({ echoCancellation: true, noiseSuppression: v && !rn, autoGainControl: v }); } catch {}
+  wire();
+}
+async function getMic(id) {
+  if (!$(id).checked) return;
+  try { await buildMic(); }
+  catch { alert('Sem acesso ao microfone: você entra só para ouvir.'); }
+}
+
+function mkpc(id, offerer) {
+  const pc = new RTCPeerConnection(ICE);
+  const p = { pc, q: [], offerer, screen: null, audios: [] };
+  pcs[id] = p;
+  pc.onicecandidate = e => e.candidate && send({ t: 'signal', to: id, data: { c: e.candidate } });
+  if (mic) mic.getTracks().forEach(t => pc.addTrack(t, mic));
+  else if (offerer) pc.addTransceiver('audio', { direction: 'recvonly' });
+  if (screen && offerer) addScreen(pc);
+  pc.ontrack = e => onTrack(p, e);
+  pc.onnegotiationneeded = async () => {
+    if (!p.offerer) return;
+    await pc.setLocalDescription();
+    send({ t: 'signal', to: id, data: { sdp: pc.localDescription, screen: screen ? screen.id : null } });
+  };
+  return p;
+}
+
+function addScreen(pc) {
+  screen.getTracks().forEach(t => {
+    const sd = pc.addTrack(t, screen);
+    if (t.kind !== 'video') return;
+    try {
+      const pref = $('#codec').value;
+      if (pref === 'auto') return;
+      const tr = pc.getTransceivers().find(x => x.sender === sd);
+      const caps = RTCRtpSender.getCapabilities('video').codecs;
+      const first = caps.filter(c => c.mimeType.toLowerCase() === 'video/' + pref);
+      tr.setCodecPreferences([...first, ...caps.filter(c => !first.includes(c))]);
+    } catch (e) { console.warn('codec', e); }
+  });
+}
+
+function tune(p) {
+  p.pc.getSenders().forEach(s => {
+    if (s.track?.kind !== 'video') return;
+    const prm = s.getParameters();
+    if (!prm.encodings.length) prm.encodings = [{}];
+    prm.encodings[0].maxBitrate = 25e6;
+    prm.degradationPreference = 'maintain-resolution';
+    s.setParameters(prm).catch(() => {});
+  });
+}
+
+function onTrack(p, e) {
+  const s = e.streams[0];
+  if (!s) return;
+  if (s.id === p.screen) {
+    if (isHost) return;
+    const v = $('#v');
+    if (v.srcObject !== s) { v.srcObject = s; v.play().catch(() => {}); }
+    if (e.track.kind === 'audio') hookScreenAudio(s);
+    $('#wait').hidden = true;
+    s.onremovetrack = () => { if (!s.getTracks().length) $('#wait').hidden = false; };
+  } else if (!p.audios.some(a => a.srcObject === s)) {
+    const a = document.createElement('audio');
+    a.autoplay = true; a.srcObject = s;
+    if (isHost && ectx) ectx.createMediaStreamSource(s).connect(refBus);   // referência p/ cancelar a call da tela
+    if (outId && a.setSinkId) a.setSinkId(outId).catch(() => {});
+    document.body.append(a);
+    p.audios.push(a);
+  }
+}
+
+async function onSignal(from, d) {
+  const p = pcs[from] || mkpc(from, false);
+  if (d.sdp) {
+    if (d.screen !== undefined) p.screen = d.screen;
+    await p.pc.setRemoteDescription(d.sdp);
+    for (const c of p.q.splice(0)) await p.pc.addIceCandidate(c).catch(() => {});
+    if (d.sdp.type === 'offer') {
+      await p.pc.setLocalDescription();
+      send({ t: 'signal', to: from, data: { sdp: p.pc.localDescription } });
+    } else tune(p);
+  } else if (d.c) {
+    if (p.pc.remoteDescription) p.pc.addIceCandidate(d.c).catch(() => {});
+    else p.q.push(d.c);
+  }
+}
+
+function drop(id) {
+  const p = pcs[id]; if (!p) return;
+  p.pc.close(); p.audios.forEach(a => a.remove()); delete pcs[id];
+  if ($('#info')) $('#info').textContent = `Conectados: ${Object.keys(pcs).length}`;
+}
+
+function handle(m) {
+  if (m.t === 'created') {
+    me = hostId = m.me;
+    $('#roomId').textContent = m.room;
+    $('#h1').hidden = true; $('#h2').hidden = false;
+    if (!mic) { $('#mmH').hidden = true; $('#inDev').parentElement.hidden = true; }
+    fillDevices();
+  } else if (m.t === 'error') alert(m.msg);
+  else if (m.t === 'joined') {
+    me = m.me; hostId = m.host;
+    m.peers.forEach(id => id !== hostId && mkpc(id, true));
+    $('#viewBox').hidden = true; $('#stage').style.display = 'block';
+    showBar();
+    setInterval(viewStats, 1500);
+    if (!mic) { $('#mm').hidden = true; $('#enhV').hidden = true; }
+  } else if (m.t === 'peer-joined') {
+    if (isHost) { mkpc(m.id, true); $('#info').textContent = `Conectados: ${Object.keys(pcs).length}`; }
+  } else if (m.t === 'signal') onSignal(m.from, m.data);
+  else if (m.t === 'peer-left') drop(m.id);
+  else if (m.t === 'room-closed') { alert('O host encerrou a sala'); location.reload(); }
+}
+
+/* ---------- HOST ---------- */
+const ro = navigator.mediaDevices.getSupportedConstraints?.().restrictOwnAudio;
+$('#restrictInfo').textContent = ro
+  ? 'Na tela inteira, o áudio da call é removido da transmissão automaticamente.'
+  : 'Este navegador não consegue tirar a call do áudio da tela inteira: use Chrome/Edge atualizado ou compartilhe uma janela.';
+$('#enhH').onchange = e => setEnh(e.target.checked);
+$('#mmH').onclick = () => {
+  const t = mic.getAudioTracks()[0]; t.enabled = !t.enabled;
+  $('#mmH').textContent = t.enabled ? '🎤 Mutar microfone' : '🔇 Microfone mutado (tocar p/ ligar)';
+};
+async function fillDevices() {
+  const sel = $('#outDev'), inp = $('#inDev');
+  try {
+    const all = await navigator.mediaDevices.enumerateDevices();
+    const cur = raw && raw.getAudioTracks()[0]?.getSettings().deviceId;
+    all.filter(d => d.kind === 'audioinput' && d.deviceId !== 'default' && d.deviceId !== 'communications')
+      .forEach(d => { const o = new Option(d.label || 'Microfone', d.deviceId); o.selected = d.deviceId === cur; inp.add(o); });
+    all.filter(d => d.kind === 'audiooutput' && d.deviceId !== 'default' && d.deviceId !== 'communications')
+      .forEach(d => sel.add(new Option(d.label || 'Dispositivo', d.deviceId)));
+  } catch {}
+  inp.onchange = () => buildMic(inp.value).catch(() => alert('Não foi possível usar esse microfone'));
+  sel.onchange = () => {
+    outId = sel.value;
+    Object.values(pcs).forEach(p => p.audios.forEach(a => a.setSinkId && a.setSinkId(outId).catch(() => {})));
+  };
+}
+$('#create').onclick = async () => {
+  ectx = new AudioContext({ sampleRate: 48000 }); refBus = ectx.createGain();
+  ewk = ectx.audioWorklet.addModule(URL.createObjectURL(new Blob([$('#echoWk').textContent], { type: 'text/javascript' })));
+  ewk.catch(() => {});
+  await getMic('#micH');
+  connect(() => send({ t: 'create' }));
+};
+
+$('#share').onclick = async () => {
+  try {
+    screen = await navigator.mediaDevices.getDisplayMedia({
+      video: { width: { ideal: Math.round(window.screen.width * (devicePixelRatio || 1)) }, height: { ideal: Math.round(window.screen.height * (devicePixelRatio || 1)) }, frameRate: { ideal: 240, max: 240 } },
+      audio: $('#shAudio').checked ? {
+        echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+        restrictOwnAudio: true   // remove da captura o áudio tocado por ESTA página (a call), mesmo na tela inteira
+      } : false,
+      systemAudio: 'include',
+      windowAudio: $('#audMode').value,
+      selfBrowserSurface: 'exclude'
+    });
+  } catch { return; }
+  screenRaw = screen;
+  const vt = screen.getVideoTracks()[0];
+  vt.contentHint = 'detail';   // prioriza resolução
+  vt.onended = stopShare;
+  const st = vt.getSettings();
+  const at = screen.getAudioTracks()[0];
+  if (at && $('#aec').checked && ectx) {
+    try {
+      await ewk;
+      const src = ectx.createMediaStreamSource(new MediaStream([at]));
+      aecNode = new AudioWorkletNode(ectx, 'echo-sub', { numberOfInputs: 2, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit' });
+      src.connect(aecNode, 0, 0); refBus.connect(aecNode, 0, 1);
+      const dst = ectx.createMediaStreamDestination();
+      aecNode.connect(dst);
+      aecNode.port.onmessage = e => {
+        const d = e.data;
+        $('#aecInfo').textContent = d.D < 0 ? 'Cancelamento da call: calibrando (fale na call)…'
+          : `Cancelamento da call: atraso ${Math.round(d.D / 48)} ms` + (d.act ? `, redução ${d.erle.toFixed(0)} dB` : '');
+      };
+      ectx.resume();
+      screen = new MediaStream([vt, dst.stream.getAudioTracks()[0]]);
+    } catch (err) { console.warn(err); $('#aecInfo').textContent = 'Cancelamento da call falhou: ' + err.message; }
+  }
+  $('#prev').srcObject = screen; $('#prev').hidden = false;
+  $('#share').hidden = true; $('#stop').hidden = false;
+  $('#info').textContent = `Transmitindo ${st.width}x${st.height} @ ${Math.round(st.frameRate || 0)}fps` +
+    (screen.getAudioTracks().length ? ' + áudio' : ' (sem áudio)');
+  Object.values(pcs).forEach(p => addScreen(p.pc));
+};
+
+function stopShare() {
+  if (!screen) return;
+  const tracks = screen.getTracks();
+  Object.values(pcs).forEach(p => p.pc.getSenders().forEach(s => tracks.includes(s.track) && p.pc.removeTrack(s)));
+  tracks.forEach(t => t.stop());
+  if (screenRaw) screenRaw.getTracks().forEach(t => t.stop());
+  if (aecNode) { aecNode.disconnect(); aecNode = null; }
+  screen = screenRaw = null;
+  $('#aecInfo').textContent = '';
+  $('#prev').hidden = true; $('#share').hidden = false; $('#stop').hidden = true;
+}
+$('#stop').onclick = stopShare;
+
+/* ---------- VIEWER ---------- */
+async function viewStats() {
+  const p = pcs[hostId]; if (!p) return;
+  (await p.pc.getStats()).forEach(r => {
+    if (r.type === 'inbound-rtp' && r.kind === 'video')
+      $('#resInfo').textContent = `Recebendo ${r.frameWidth || 0}x${r.frameHeight || 0} @ ${Math.round(r.framesPerSecond || 0)}fps`;
+  });
+}
+$('#join').onclick = async () => {
+  const room = $('#code').value.trim();
+  if (!/^\d{5}$/.test(room)) return alert('Digite o ID de 5 dígitos');
+  vctx = new AudioContext(); vctx.resume();
+  await getMic('#micV');
+  connect(() => send({ t: 'join', room }));
+  $('#v').play().catch(() => {});
+};
+let vctx, vgain, vol = 1;
+function setVol(x) {
+  vol = Math.max(0, Math.min(3, Math.round(x * 100) / 100));
+  $('#vol').value = vol; $('#volT').textContent = Math.round(vol * 100) + '%';
+  if (vgain) vgain.gain.value = vol;
+  if (vctx) vctx.resume();
+}
+function hookScreenAudio(s) {   // áudio da transmissão passa por um ganho (até 300%)
+  if (vgain) return;
+  vctx = vctx || new AudioContext();
+  vgain = vctx.createGain();
+  vctx.createMediaStreamSource(s).connect(vgain);
+  const lim = vctx.createDynamicsCompressor();
+  lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.1;
+  vgain.connect(lim); lim.connect(vctx.destination);
+  setVol(vol);
+}
+$('#vol').oninput = e => setVol(+e.target.value);
+$('#vm').onclick = () => setVol(vol - 0.1);
+$('#vp').onclick = () => setVol(vol + 0.1);
+$('#mm').onclick = () => {
+  const t = mic.getAudioTracks()[0]; t.enabled = !t.enabled;
+  $('#mm').textContent = t.enabled ? '🎤' : '🔇';
+};
+$('#enhV').onclick = () => { setEnh(!enh); $('#enhV').style.opacity = enh ? 1 : .4; };
+$('#leave').onclick = () => location.reload();
+
+/* barra some sozinha após 3 s; toque na tela mostra/esconde */
+const bar = $('#bar'); let barTimer;
+const hideBar = () => { clearTimeout(barTimer); bar.classList.add('off'); };
+const armBar = () => { clearTimeout(barTimer); barTimer = setTimeout(hideBar, 3000); };
+const showBar = () => { bar.classList.remove('off'); armBar(); };
+$('#stage').addEventListener('click', e => {
+  if (bar.contains(e.target)) return;
+  bar.classList.contains('off') ? showBar() : hideBar();
+});
+bar.addEventListener('pointerdown', () => clearTimeout(barTimer));   // mexendo na barra (ex.: arrastando o volume): não some
+['pointerup', 'pointercancel', 'change'].forEach(ev => bar.addEventListener(ev, armBar));
+bar.addEventListener('input', () => clearTimeout(barTimer));
+
+</script></body></html>
