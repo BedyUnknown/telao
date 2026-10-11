@@ -70,7 +70,7 @@ details p{margin:8px 0;color:var(--dim);font-size:12px;line-height:1.5}
 .tile.idle .tph,.tile.wait .tph{display:grid}
 .tile.wait .tplay{display:none}
 #screens.focus .tile:not(.focused) .tph button{display:none}
-.tctl{position:absolute;left:8px;right:8px;bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:rgba(0,0,0,.65);padding:4px 6px;border-radius:10px;backdrop-filter:blur(6px);transition:opacity .25s}
+.tctl{position:absolute;left:8px;right:8px;bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:rgba(0,0,0,.65);padding:4px 6px;border-radius:10px;transition:opacity .25s}
 .tctl input[type=range]{flex:1 1 90px;min-width:70px;padding:0;border:0;background:transparent;accent-color:#fff;min-height:28px}
 .tctl button{min-width:0;min-height:34px;padding:2px 10px;font-size:13px;white-space:nowrap}
 .tile.idle .tctl,.tile.wait .tctl,#screens.focus .tile:not(.focused) .tctl{display:none}
@@ -87,33 +87,64 @@ details p{margin:8px 0;color:var(--dim);font-size:12px;line-height:1.5}
 .cin input{flex:1;min-width:0}
 .vrow{display:flex;gap:10px;align-items:center}
 .vrow input[type=range]{flex:1;min-width:0;padding:0;border:0;background:transparent;accent-color:#fff}
-#stageGrid{position:absolute;inset:0;padding:calc(8px + env(safe-area-inset-top,0px)) calc(8px + env(safe-area-inset-right,0px)) 8px calc(8px + env(safe-area-inset-left,0px))}
-#bar{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));max-width:620px;margin:0 auto;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;padding:10px;background:rgba(0,0,0,.85);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(6px);transition:opacity .25s,transform .25s,visibility 0s}
+#stageGrid{position:absolute;inset:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+#stage{overscroll-behavior:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+#stage .tile{border-color:transparent;border-radius:0;background:#000}
+#stage #screens{gap:2px}
+#stage .tctl{left:8px;right:auto;bottom:auto;top:46px;width:max-content;max-width:calc(100% - 72px)}   /* controles da tela no topo: nunca ficam embaixo da barra */
+#stage .tctl .tvol{display:none}
+#stage .tctl button{min-height:32px;font-size:12px;padding:2px 10px}
+#bar{position:absolute;left:calc(10px + env(safe-area-inset-left,0px));right:calc(10px + env(safe-area-inset-right,0px));max-width:560px;margin:0 auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:grid;gap:10px;padding:12px;background:rgba(10,10,10,.94);border:1px solid #3a3a3a;border-radius:18px;transition:opacity .25s,transform .25s,visibility 0s}
 #bar.off{opacity:0;transform:translateY(14px);visibility:hidden;pointer-events:none;transition:opacity .25s,transform .25s,visibility 0s .25s}
-#pplP,#chatP{padding-bottom:8px;border-bottom:1px solid var(--soft)}
-#pplP{overflow:auto;max-height:clamp(80px,calc(100dvh - 150px),44vh)}
-#chatP #chatList{height:clamp(80px,calc(100dvh - 230px),42vh)}
-#bar:has(#chatP:not([hidden]),#pplP:not([hidden]))>.row:nth-child(3),#bar:has(#chatP:not([hidden]),#pplP:not([hidden]))>.row:nth-child(5){display:none}   /* painel aberto: some a linha de volume para dar espaço */
+.vrow2{display:grid;grid-template-columns:36px minmax(0,1fr) 36px 44px;gap:8px;align-items:center}
+.vrow2 button{width:36px;height:36px;min-height:36px;padding:0;border-radius:50%;font-size:20px;line-height:1;display:grid;place-items:center;border-color:#555}
+.vrow2 input[type=range]{width:100%;min-width:0;padding:0;border:0;background:transparent;accent-color:#fff;min-height:36px}
+.vrow2 b{font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(48px,1fr));gap:8px}
+.ab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:54px;padding:6px 2px;border-radius:12px;border-color:#444;font-size:11px;line-height:1.1;letter-spacing:.02em;color:#ddd}
+.ab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ab.bad{color:#ff6b6b;border-color:#ff6b6b}
+.ab.dim{color:#777;border-style:dashed}
+.ab.danger{color:#ff9a9a;border-color:#6b2a2a}
+.ab .bdg{position:absolute;top:3px;right:5px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#fff;color:#000;font-size:10px;font-weight:700;display:grid;place-items:center;font-style:normal}
+.meta{display:flex;gap:2px 12px;flex-wrap:wrap;justify-content:center;font-size:11px;color:var(--dim);min-width:0;text-align:center}
+.meta:empty{display:none}
+#bar .nsInfo{display:none}
+#pplP,#chatP{padding-bottom:10px;border-bottom:1px solid var(--soft)}
+#pplP{overflow:auto;max-height:clamp(80px,calc(100dvh - 170px),44vh)}
+#chatP #chatList{height:clamp(80px,calc(100dvh - 250px),42vh)}
+#bar:has(#chatP:not([hidden]),#pplP:not([hidden])) .vrow2{display:none}   /* painel aberto: some o volume para dar espaço */
 #stage:has(#bar.off) .tctl{opacity:0;pointer-events:none}
-.row{display:flex;gap:8px;align-items:center}
-.row button{flex:none;min-width:44px;padding:8px 12px}
-.row input[type=range]{flex:1;min-width:0;padding:0;border:0;background:transparent;accent-color:#fff}
-.row b{min-width:48px;text-align:right;font-size:14px}
-.row .nsInfo{flex:1;min-width:0;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #fab{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));z-index:2;transition:opacity .25s,visibility 0s}
 #fab.off{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s,visibility 0s .25s}
-#fab button{width:40px;height:40px;min-width:40px;min-height:40px;padding:0;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.55);opacity:.8;backdrop-filter:blur(6px)}
+#fab button{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.7);border-color:#666}
 [hidden]{display:none!important}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.tname b{overflow:hidden;text-overflow:ellipsis}
+.pr .pn,.ri small,#chatList div{overflow-wrap:anywhere}
+.tile.noprev video{visibility:hidden}
+.tile.noprev .tph{display:grid}
+.tile.noprev .tplay,.tile.noprev .tctl{display:none}
+.tile.mirror video{visibility:hidden}
+.tile.mirror .tph{display:grid}
+.tile.mirror .tplay{display:none}
+#txInfo{line-height:1.5}
+/* sala no PC: o vídeo ocupa a altura da janela e o painel lateral rola sozinho */
+#mainPC{position:relative;width:100%;height:auto;aspect-ratio:16/9;min-height:220px;max-height:72dvh}
+#mainPC #screens{position:absolute;inset:0;height:auto}
+@media(min-width:1000px){
+#mainPC{aspect-ratio:auto;max-height:none;height:calc(100dvh - 104px);min-height:360px}
+#sidePC{position:sticky;top:8px;max-height:calc(100dvh - 104px);overflow:auto;padding-right:2px}
+}
 @media(min-width:900px){#lobby{padding:28px}}
-@media(max-width:600px){#bar .nsInfo{display:none}#bar{padding:8px}.pr i{display:none}.pr input[type=range]{width:72px}.row button{padding:8px 10px}}
-@media(orientation:landscape) and (max-height:500px){   /* celular deitado: barra compacta, 2 colunas */
-#bar{max-width:720px;grid-template-columns:1fr auto;align-items:center;gap:6px 14px;padding:6px 10px;bottom:calc(8px + env(safe-area-inset-bottom,0px))}
-#bar #pplP,#bar #chatP{grid-column:1/-1}
-#bar .row:last-child{grid-column:1/-1;justify-content:center}
-#bar .row button{min-height:38px;padding:4px 10px}
-#bar .nsInfo{display:none}
-.tctl{left:4px;right:4px;bottom:4px;padding:2px 4px}
-.tctl button{min-height:30px}
+@media(max-width:360px){.ab{font-size:10px}.vrow2{grid-template-columns:34px minmax(0,1fr) 34px 40px}}
+@media(orientation:landscape) and (max-height:500px){   /* celular deitado: barra compacta, volume à esquerda e botões à direita */
+#bar{max-width:780px;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);align-items:center;gap:6px 14px;padding:6px 10px;bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+#bar #pplP,#bar #chatP,#bar .meta{grid-column:1/-1}
+.ab{min-height:42px;flex-direction:row;gap:0}
+.ab .lb{display:none}
+.ab .bdg{top:2px;right:4px}
+#stage .tctl{top:42px}
 }
 </style></head><body>
 
@@ -146,18 +177,33 @@ details p{margin:8px 0;color:var(--dim);font-size:12px;line-height:1.5}
           <button class="p" id="share">Iniciar transmissão</button>
           <button id="stop" hidden>Parar transmissão</button>
           <small id="info"></small>
-          <label><input type="checkbox" id="shAudio" checked> Transmitir áudio do PC</label>
-          <label>🔈 Áudio da transmissão: <select id="audMode"><option value="window">Só da janela escolhida (a call não entra)</option><option value="system">Sistema inteiro</option></select></label>
-          <label><input type="checkbox" id="aec" checked> Cancelar a call do áudio da tela (software)</label>
-          <label>🎞️ Codec de vídeo: <select id="codec"><option value="auto">Automático</option><option value="h264">H.264 (placa de vídeo)</option><option value="vp9">VP9</option><option value="av1">AV1</option><option value="vp8">VP8</option></select></label>
-          <label>📺 Qualidade: <select id="qual">
-            <option value="native">Nativa (até 25 Mbps)</option>
-            <option value="1440">1440p 60fps (12 Mbps)</option>
-            <option value="1080">1080p 60fps (8 Mbps)</option>
-            <option value="1080b">1080p 30fps (4 Mbps)</option>
-            <option value="720">720p 30fps (2,5 Mbps)</option>
+          <small id="txInfo"></small>
+          <label>📐 Resolução: <select id="res">
+            <option value="0">Fonte (resolução original)</option>
+            <option value="1440">1440p</option>
+            <option value="1080" selected>1080p</option>
+            <option value="900">900p</option>
+            <option value="720">720p</option>
+            <option value="480">480p</option>
           </select></label>
-          <label>🎯 Prioridade: <select id="prio"><option value="detail">Nitidez (mantém a resolução)</option><option value="motion">Fluidez (mantém os FPS)</option></select></label>
+          <label>🎞️ FPS: <select id="fps"></select></label>
+          <div class="hk"><small id="hzInfo"></small><button class="lnk" id="hzRe" title="Medir os Hz do monitor de novo">↻ Medir</button></div>
+          <label><input type="checkbox" id="shAudio" checked> Transmitir áudio do PC</label>
+          <details id="adv"><summary>Avançado (bitrate, codec, prioridade, prévia)</summary>
+            <div class="card" style="margin-top:10px">
+              <label>📶 Bitrate: <select id="br">
+                <option value="auto">Automático (pela resolução e FPS)</option>
+                <option value="2">2 Mbps</option><option value="4">4 Mbps</option><option value="6">6 Mbps</option><option value="8">8 Mbps</option>
+                <option value="12">12 Mbps</option><option value="20">20 Mbps</option><option value="30">30 Mbps</option>
+              </select></label>
+              <label>🎞️ Codec de vídeo: <select id="codec"><option value="auto">Automático (usa a placa de vídeo se der)</option><option value="h264">H.264 (placa de vídeo)</option><option value="vp9">VP9</option><option value="av1">AV1</option><option value="vp8">VP8 (leve no processador)</option></select></label>
+              <label>🎯 Prioridade: <select id="prio"><option value="motion">Fluidez (mantém os FPS, melhor p/ jogos)</option><option value="detail">Nitidez (mantém a resolução)</option></select></label>
+              <label><input type="checkbox" id="prev"> Mostrar minha prévia (gasta GPU e aparece na tela inteira)</label>
+              <label>🔈 Áudio da transmissão: <select id="audMode"><option value="window">Só da janela escolhida (a call não entra)</option><option value="system">Sistema inteiro</option></select></label>
+              <label><input type="checkbox" id="aec" checked> Cancelar a call do áudio da tela (software)</label>
+              <small>Codec, áudio e cancelamento valem ao iniciar a transmissão. Resolução, FPS, bitrate e prioridade mudam ao vivo.</small>
+            </div>
+          </details>
           <small id="aecInfo"></small>
           <small id="restrictInfo"></small>
           <button id="mmH">🎤 Mutar microfone</button>
@@ -185,9 +231,15 @@ details p{margin:8px 0;color:var(--dim);font-size:12px;line-height:1.5}
   <div id="bar">
     <div id="pplP" hidden></div>
     <div id="chatP" hidden></div>
-    <div class="row"><button id="vm">−</button><input type="range" id="vol" min="0" max="3" step="0.05" value="1" title="Volume de todas as transmissões"><button id="vp">+</button><b id="volT">100%</b></div>
-    <div class="row"><button id="mm">🎤</button><button id="enhV" title="Filtro de ruído do microfone">✨ Filtro</button><span class="nsInfo"></span><button id="ppl" title="Pessoas na sala">👥 <span class="pcount">1</span></button><button id="chatB" title="Chat">💬</button><button id="leave">Sair</button></div>
-    <div class="row"><small id="resInfo"></small></div>
+    <div class="vrow2"><button id="vm" aria-label="Diminuir volume">−</button><input type="range" id="vol" min="0" max="3" step="0.05" value="1" aria-label="Volume de todas as transmissões"><button id="vp" aria-label="Aumentar volume">+</button><b id="volT">100%</b></div>
+    <div class="acts">
+      <button class="ab" id="mm" data-ic="mic" aria-label="Microfone"><span class="lb">Mic</span></button>
+      <button class="ab" id="enhV" data-ic="wand" aria-label="Filtro de ruído"><span class="lb">Filtro</span></button>
+      <button class="ab" id="ppl" data-ic="users" aria-label="Pessoas na sala"><span class="lb">Pessoas</span><em class="bdg pcount">1</em></button>
+      <button class="ab" id="chatB" data-ic="chat" aria-label="Chat"><span class="lb">Chat</span></button>
+      <button class="ab danger" id="leave" data-ic="exit" aria-label="Sair da sala"><span class="lb">Sair</span></button>
+    </div>
+    <div class="meta"><span class="nsInfo"></span><span id="resInfo"></span></div>
   </div>
   <div id="fab"><button id="fs" title="Tela cheia" aria-label="Tela cheia"></button></div>
 </div>
@@ -594,8 +646,8 @@ function addScreenTo(p) {
     const sd = p.pc.addTrack(t, screen);
     if (t.kind !== 'video') return;
     try {
-      const pref = $('#codec').value;
-      if (pref === 'auto') return;
+      const pref = $('#codec').value === 'auto' ? autoCodec : $('#codec').value;
+      if (!pref) return;
       const tr = p.pc.getTransceivers().find(x => x.sender === sd);
       const caps = RTCRtpSender.getCapabilities('video').codecs;
       const first = caps.filter(c => c.mimeType.toLowerCase() === 'video/' + pref);
@@ -613,21 +665,82 @@ function onWatch(from, on) {   // alguém pediu para assistir (ou parar de assis
   if (on) { if (!watchers.has(from)) { watchers.add(from); addScreenTo(p); } }
   else { watchers.delete(from); removeScreenFrom(p); }
 }
-const Q = {   // h = altura máxima (0 = nativa), fps, bitrate
-  native: { h: 0, fps: 240, br: 25e6 },
-  '1440': { h: 1440, fps: 60, br: 12e6 },
-  '1080': { h: 1080, fps: 60, br: 8e6 },
-  '1080b': { h: 1080, fps: 30, br: 4e6 },
-  '720': { h: 720, fps: 30, br: 2.5e6 }
-};
+/* ---- qualidade: resolução, FPS (pelos Hz do monitor), bitrate e codec ---- */
+let hz = 60, autoCodec = null, codecLabel = '';
+const srcDims = () => { const d = devicePixelRatio || 1; return { w: Math.round(window.screen.width * d), h: Math.round(window.screen.height * d) }; };
+function qcfg() {   // h = altura máxima escolhida (0 = fonte); w/th = tamanho final estimado
+  const s = srcDims(), res = +$('#res').value || 0, fps = +$('#fps').value || 60;
+  const th = res && s.h > res ? res : s.h, w = Math.round(s.w * th / s.h), sel = $('#br').value;
+  const br = sel === 'auto' ? Math.max(1.5e6, Math.min(30e6, w * th * fps * 0.07)) : +sel * 1e6;
+  return { h: res, w, th, fps, br };
+}
+const measureHz = (ms = 1200) => new Promise(res => {   // mede o intervalo entre quadros do navegador = Hz do monitor onde a janela está
+  const d = []; let last = 0; const t0 = performance.now();
+  const f = t => { if (last) d.push(t - last); last = t; if (t - t0 < ms) requestAnimationFrame(f); else res(d); };
+  requestAnimationFrame(f);
+});
+const HZ = [24, 30, 48, 50, 60, 72, 75, 90, 100, 120, 144, 165, 180, 200, 240, 280, 300, 360];
+function fillFps() {   // opções de FPS que fazem sentido para o monitor (nunca acima dos Hz)
+  const set = new Set([hz, 30]);
+  if (hz > 120) set.add(120);
+  if (hz >= 100 && hz % 2 === 0) set.add(hz / 2);
+  if (hz > 60) set.add(60);
+  let list = [...set].filter(v => v <= hz).sort((a, b) => b - a);
+  if (!list.length) list = [hz];
+  const sel = $('#fps'), keep = +store.get('fps') || +sel.value || 60;
+  sel.replaceChildren(...list.map(v => new Option(v + ' fps' + (v === hz ? ' (monitor)' : ''), v)));
+  sel.value = list.includes(keep) ? keep : (list.includes(60) ? 60 : list[0]);
+  $('#hzInfo').textContent = `Monitor: ${hz} Hz (medido pelo navegador)`;
+}
+async function detectHz() {
+  if (!canHost || document.visibilityState !== 'visible') return;
+  const d = (await measureHz()).slice(5).sort((a, b) => a - b);
+  if (d.length < 10) return;
+  const raw = 1000 / d[d.length >> 1];
+  hz = HZ.reduce((b, v) => Math.abs(v - raw) < Math.abs(b - raw) ? v : b, 60);
+  fillFps();
+}
+fillFps();
+['res', 'br', 'codec', 'prio'].forEach(id => {   // lembra as escolhas neste navegador
+  const el = $('#' + id), v = store.get(id);
+  if (v != null && [...el.options].some(o => o.value === v)) el.value = v;
+  el.addEventListener('change', () => store.set(id, el.value));
+});
+$('#fps').addEventListener('change', () => store.set('fps', $('#fps').value));
+$('#prev').checked = store.get('prev') === '1';
+$('#hzRe').onclick = async () => { $('#hzInfo').textContent = 'Medindo…'; await detectHz(); fillFps(); };
+detectHz();
+document.addEventListener('visibilitychange', () => { if (canHost && !screen && document.visibilityState === 'visible') setTimeout(detectHz, 800); });
+
+const CODECS = { h264: 'video/H264', av1: 'video/AV1', vp9: 'video/VP9', vp8: 'video/VP8' };
+const CODEC_NAME = { h264: 'H.264', av1: 'AV1', vp9: 'VP9', vp8: 'VP8' };
+async function detectCodec() {   // automático: o codec que usa a placa de vídeo; sem placa, o mais leve para o processador (VP8)
+  const pref = $('#codec').value;
+  autoCodec = null; codecLabel = '';
+  if (pref !== 'auto') { autoCodec = pref; codecLabel = CODEC_NAME[pref]; return; }
+  const have = (RTCRtpSender.getCapabilities('video')?.codecs || []).map(c => c.mimeType.toLowerCase());
+  if (navigator.mediaCapabilities?.encodingInfo) {
+    const q = qcfg();
+    for (const k of ['h264', 'av1', 'vp9']) {
+      if (!have.includes(CODECS[k].toLowerCase())) continue;
+      for (const ct of k === 'h264' ? [CODECS.h264, CODECS.h264 + ';level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f'] : [CODECS[k]]) {
+        try {
+          const r = await navigator.mediaCapabilities.encodingInfo({ type: 'webrtc', video: { contentType: ct, width: q.w, height: q.th, bitrate: Math.round(q.br), framerate: q.fps } });
+          if (r.supported && r.powerEfficient) { autoCodec = k; codecLabel = CODEC_NAME[k] + ' (placa de vídeo)'; return; }
+        } catch {}
+      }
+    }
+  }
+  if (have.includes('video/vp8')) { autoCodec = 'vp8'; codecLabel = 'VP8 (sem placa de vídeo disponível)'; }
+}
 function tune(p) {
-  const q = Q[$('#qual').value] || Q.native, motion = $('#prio').value === 'motion';
+  const q = qcfg(), motion = $('#prio').value === 'motion';
   p.pc.getSenders().forEach(s => {
     if (s.track?.kind !== 'video') return;
     const prm = s.getParameters();
     if (!prm.encodings.length) prm.encodings = [{}];
     const e = prm.encodings[0], h = s.track.getSettings().height || 0;
-    e.maxBitrate = q.br; e.maxFramerate = q.fps;
+    e.maxBitrate = Math.round(q.br); e.maxFramerate = q.fps;
     e.scaleResolutionDownBy = q.h && h > q.h ? h / q.h : 1;
     prm.degradationPreference = motion ? 'maintain-framerate' : 'maintain-resolution';
     s.setParameters(prm).catch(() => {});
@@ -637,7 +750,15 @@ const applyHint = () => {
   const vt = screen && screen.getVideoTracks()[0];
   if (vt) vt.contentHint = $('#prio').value === 'motion' ? 'motion' : 'detail';
 };
-$('#qual').onchange = $('#prio').onchange = () => { applyHint(); Object.values(pcs).forEach(tune); };
+async function applyCap() {   // limita a PRÓPRIA captura (menos trabalho para o PC, e vale para todos os espectadores); muda ao vivo
+  const vt = screenRaw && screenRaw.getVideoTracks()[0]; if (!vt) return;
+  const q = qcfg(), c = vt.getCapabilities ? vt.getCapabilities() : {};
+  const maxH = c.height?.max || 4320, maxW = c.width?.max || 7680;
+  const h = q.h ? Math.min(q.h, maxH) : maxH, w = q.h ? Math.min(Math.ceil(maxW * h / maxH), maxW) : maxW;
+  try { await vt.applyConstraints({ width: { max: w }, height: { max: h }, frameRate: { ideal: q.fps, max: q.fps } }); } catch (e) { console.warn('captura', e); }
+}
+const onQual = async () => { applyHint(); await applyCap(); Object.values(pcs).forEach(tune); };
+['res', 'fps', 'br', 'prio'].forEach(id => $('#' + id).addEventListener('change', onQual));
 
 function onTrack(p, e) {
   const s = e.streams[0];
@@ -683,7 +804,11 @@ const emptyEl = document.createElement('div'); emptyEl.className = 'emptyMsg';
 const emptyDefault = canHost ? 'Ninguém está transmitindo. Use "Iniciar transmissão" ao lado.' : 'Aguardando alguém transmitir…';
 screensEl.append(emptyEl);
 function setEmptyText(t) { emptyEl.textContent = t; updateEmpty(); }
-function updateEmpty() { emptyEl.hidden = tiles.size > 0; }
+function updateEmpty() {
+  emptyEl.hidden = tiles.size > 0;
+  $$('.tfocus').forEach(b => { b.hidden = tiles.size < 2; });   // focar só faz sentido com mais de uma tela
+  if (tiles.size < 2 && focusId) { focusId = null; applyFocus(); }
+}
 setEmptyText(emptyDefault);
 const nickOf = id => (roster.find(p => p.id === id) || {}).nick || '…';
 
@@ -691,13 +816,14 @@ function tileFor(id, own) {
   let t = tiles.get(id); if (t) return t;
   const el = document.createElement('div'); el.className = 'tile idle'; el.dataset.id = id;
   el.innerHTML = `<video autoplay playsinline muted></video>
-    <div class="tph"><span class="tl"></span><button class="p tplay">▶ Assistir</button></div>
+    <div class="tph"><span class="tl"></span><button class="p tplay">▶ Assistir</button><button class="tshow" hidden>Mostrar assim mesmo</button></div>
     <div class="tname"><span class="dot"></span><b></b></div>
     <div class="tctl"><input type="range" class="tvol" min="0" max="4" step="0.05" value="1" title="Volume desta transmissão"><button class="tfocus" title="Focar nesta tela / voltar à grade">Focar</button><button class="tfs" title="Tela cheia">Tela cheia</button><button class="tstop" title="Parar de assistir esta tela">Parar</button></div>`;
   t = { el, video: el.querySelector('video'), own: !!own, src: null, gain: null };
   tiles.set(id, t);
   const stop = f => e => { e.stopPropagation(); f(); };
   el.querySelector('.tplay').onclick = stop(() => watch(id, true));
+  el.querySelector('.tshow').onclick = stop(() => { showMirror = true; applyMirror(); });
   el.querySelector('.tstop').onclick = stop(() => watch(id, false));
   el.querySelector('.tfocus').onclick = stop(() => setFocus(id));
   const fsb = el.querySelector('.tfs');
@@ -717,6 +843,21 @@ function setTileState(id, st) {
   const t = tiles.get(id); if (!t) return;
   t.el.classList.remove('idle', 'wait', 'live'); t.el.classList.add(st);
   t.el.querySelector('.tl').textContent = st === 'wait' ? 'Conectando…' : `${nickOf(id)} está transmitindo`;
+  applyMirror(id);
+}
+/* anti-retorno: transmitindo a tela INTEIRA, o vídeo dos outros apareceria dentro da sua transmissão (e dois PCs se assistindo viram um espelho) */
+let showMirror = false;
+const mirrorRisk = () => { const vt = screenRaw && screenRaw.getVideoTracks()[0]; return !!vt && (vt.getSettings().displaySurface || 'monitor') === 'monitor' && !showMirror; };
+function applyMirror(only) {
+  const risk = mirrorRisk();
+  for (const [id, t] of tiles) {
+    if (t.own || (only && id !== only)) continue;
+    const live = t.el.classList.contains('live'), on = risk && live;
+    t.el.classList.toggle('mirror', on);
+    t.el.querySelector('.tshow').hidden = !on;
+    if (on) { t.el.querySelector('.tl').textContent = 'Vídeo oculto para não aparecer na sua transmissão (o áudio continua).'; t.video.pause(); }
+    else if (live) { t.el.querySelector('.tl').textContent = `${nickOf(id)} está transmitindo`; t.video.play().catch(() => {}); }
+  }
 }
 function dropScreenAudio(t) {
   try { t.src && t.src.disconnect(); t.gain && t.gain.disconnect(); } catch {}
@@ -761,10 +902,13 @@ function attachScreen(id, s, track) {
     t.src.connect(t.gain); t.gain.connect(mgain);
   }
 }
-function startOwnTile() {
-  const t = tileFor(me, true);
-  t.video.srcObject = screen; t.video.play().catch(() => {});
+function startOwnTile() {   // a prévia da própria tela fica desligada por padrão: decodificar e desenhar a tela ao vivo gasta GPU do PC que joga
+  const t = tileFor(me, true), pv = $('#prev').checked;
+  t.el.classList.toggle('noprev', !pv);
+  t.el.querySelector('.tl').textContent = 'Transmitindo — prévia desligada (poupa o PC)';
+  if (pv) { t.video.srcObject = screen; t.video.play().catch(() => {}); } else t.video.srcObject = null;
 }
+$('#prev').onchange = e => { store.set('prev', e.target.checked ? '1' : '0'); if (screen && tiles.get(me)) startOwnTile(); };
 
 /* ================= pessoas e chat ================= */
 function renderPeople() {
@@ -819,7 +963,7 @@ function showRoom() {
   } else {
     $('#stage').style.display = 'block';
     $('#stageGrid').append(screensEl); $('#pplP').append($('#people')); $('#chatP').append($('#chat'));
-    if (!mic) { $('#mm').hidden = true; $('#enhV').hidden = true; }
+    if (!mic) { $('#mm').hidden = true; $('#enhV').hidden = true; } else setMmUi();
     clearInterval(statsTimer); statsTimer = setInterval(viewStats, 1500);
     showBar();
     acquireWakeLock();
@@ -964,10 +1108,12 @@ async function fillDevices() {
 }
 
 $('#share').onclick = async () => {
-  const q = Q[$('#qual').value] || Q.native, dpr = devicePixelRatio || 1;
+  const q = qcfg(), src = srcDims();
   try {
     screen = await navigator.mediaDevices.getDisplayMedia({
-      video: { width: { ideal: Math.round(window.screen.width * dpr) }, height: { ideal: Math.round(window.screen.height * dpr) }, frameRate: { ideal: q.fps, max: q.fps } },
+      video: q.h
+        ? { width: { ideal: q.w, max: q.w }, height: { ideal: q.th, max: q.th }, frameRate: { ideal: q.fps, max: q.fps } }   // já captura no tamanho/FPS escolhidos
+        : { width: { ideal: src.w }, height: { ideal: src.h }, frameRate: { ideal: q.fps, max: q.fps } },
       audio: $('#shAudio').checked ? {
         echoCancellation: false, noiseSuppression: false, autoGainControl: false,
         restrictOwnAudio: true   // remove da captura o áudio tocado por ESTA página (a call), mesmo na tela inteira
@@ -980,6 +1126,7 @@ $('#share').onclick = async () => {
   screenRaw = screen;
   const vt = screen.getVideoTracks()[0];
   applyHint();
+  await detectCodec();
   vt.onended = stopShare;
   const st = vt.getSettings();
   const at = screen.getAudioTracks()[0];
@@ -1002,11 +1149,37 @@ $('#share').onclick = async () => {
   }
   watchers.clear();
   startOwnTile();
+  showMirror = false; applyMirror();
   $('#share').hidden = true; $('#stop').hidden = false;
   $('#info').textContent = `Transmitindo ${st.width}x${st.height} @ ${Math.round(st.frameRate || 0)}fps` +
     (screen.getAudioTracks().length ? ' + áudio' : ' (sem áudio)') + ' — quem quiser assistir toca na sua tela.';
   send({ t: 'sharing', on: true });
+  clearInterval(txTimer); txTimer = setInterval(txStats, 2000); txStats();
 };
+let txTimer, txPrev = {};
+async function txStats() {   // mostra o que está sendo enviado de verdade e se o PC/internet estão no limite
+  if (!screen) return;
+  const el = $('#txInfo'), ids = [...watchers].filter(id => pcs[id]);
+  if (!ids.length) { el.textContent = 'Ninguém assistindo agora: a tela é capturada, mas nada é codificado nem enviado.'; return; }
+  let first = null, rate = 0, codec = '';
+  for (const id of ids) {
+    let st; try { st = await pcs[id].pc.getStats(); } catch { continue; }
+    st.forEach(r => {
+      if (r.type !== 'outbound-rtp' || r.kind !== 'video') return;
+      const pv = txPrev[id];
+      if (pv && r.timestamp > pv.t) rate += (r.bytesSent - pv.b) * 8 / ((r.timestamp - pv.t) / 1000);
+      txPrev[id] = { b: r.bytesSent, t: r.timestamp };
+      if (!first) { first = r; codec = (st.get(r.codecId) || {}).mimeType || ''; }
+    });
+  }
+  if (!first) { el.textContent = 'Conectando com quem assiste…'; return; }
+  let t = [`📤 ${first.frameWidth || 0}x${first.frameHeight || 0} @ ${Math.round(first.framesPerSecond || 0)}fps`, `${(rate / 1e6).toFixed(1)} Mbps`,
+    codec.replace('video/', '') + (first.powerEfficientEncoder ? ' (placa de vídeo)' : ''), `${ids.length} assistindo`].join(' · ');
+  if (first.qualityLimitationReason === 'cpu') t += '\n⚠️ Processador no limite: baixe a resolução ou os FPS.';
+  else if (first.qualityLimitationReason === 'bandwidth') t += '\n⚠️ Internet limitando: baixe o bitrate ou a resolução.';
+  if (ids.length > 2) t += '\nCada espectador a mais é um envio a mais: gasta mais CPU e internet.';
+  el.textContent = t; el.style.whiteSpace = 'pre-line';
+}
 function stopShare() {
   if (!screen) return;
   const tracks = screen.getTracks();
@@ -1014,8 +1187,9 @@ function stopShare() {
   tracks.forEach(t => t.stop());
   if (screenRaw) screenRaw.getTracks().forEach(t => t.stop());
   if (aecNode) { aecNode.disconnect(); aecNode = null; }
-  screen = screenRaw = null; watchers.clear();
+  screen = screenRaw = null; watchers.clear(); applyMirror();
   removeTile(me);
+  clearInterval(txTimer); txPrev = {}; $('#txInfo').textContent = '';
   $('#aecInfo').textContent = ''; $('#info').textContent = '';
   $('#share').hidden = false; $('#stop').hidden = true;
   send({ t: 'sharing', on: false });
@@ -1033,12 +1207,26 @@ async function viewStats() {
       $('#resInfo').textContent = `${nickOf(id)}: ${r.frameWidth || 0}x${r.frameHeight || 0} @ ${Math.round(r.framesPerSecond || 0)}fps`;
   });
 }
+const IC = {
+  mic: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+  micoff: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg>',
+  wand: '<svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>',
+  users: '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14a6.5 6.5 0 0 1 3 6"/></svg>',
+  chat: '<svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/></svg>',
+  exit: '<svg viewBox="0 0 24 24"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg>'
+};
+const setIc = (b, n) => { b.querySelector('svg')?.remove(); b.insertAdjacentHTML('afterbegin', IC[n]); };
+$$('[data-ic]').forEach(b => setIc(b, b.dataset.ic));
+function setMmUi() {
+  const on = !mic || mic.getAudioTracks()[0].enabled, b = $('#mm');
+  setIc(b, on ? 'mic' : 'micoff'); b.querySelector('.lb').textContent = on ? 'Mic' : 'Mudo'; b.classList.toggle('bad', !on);
+}
 $('#mm').onclick = () => {
   if (!mic) return;
   const t = mic.getAudioTracks()[0]; t.enabled = !t.enabled;
-  $('#mm').textContent = t.enabled ? '🎤' : '🔇';
+  setMmUi();
 };
-$('#enhV').onclick = () => { setEnh(!enh); $('#enhV').style.opacity = enh ? 1 : .4; };
+$('#enhV').onclick = () => { setEnh(!enh); $('#enhV').classList.toggle('dim', !enh); };
 $('#leave').onclick = leave;
 $('#leaveP').onclick = leave;
 
@@ -1083,9 +1271,11 @@ const ico = d => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" st
 const fsIcon = () => fsBtn.innerHTML = fsCur() ? ico('M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5') : ico('M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
 if (!fsReq) fab.hidden = true;   // iPhone não suporta tela cheia em página web
 fsIcon();
-fsBtn.onclick = () => {
-  if (fsCur()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-  else Promise.resolve(fsReq.call(fsEl)).catch(() => {});
+const orient = window.screen.orientation;   // aqui "screen" é a transmissão; a tela do aparelho é window.screen
+fsBtn.onclick = async () => {
+  if (fsCur()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+  try { await fsReq.call(fsEl); } catch { return; }
+  if ([...tiles.values()].some(t => t.video.videoWidth > t.video.videoHeight)) { try { await orient?.lock?.('landscape'); } catch {} }   // gira sozinho, mesmo com a rotação automática desligada
 };
-['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, fsIcon));
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => { fsIcon(); if (!fsCur()) { try { orient?.unlock?.(); } catch {} } }));
 </script></body></html>

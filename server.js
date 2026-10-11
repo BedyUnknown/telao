@@ -13,6 +13,7 @@ app.get('/healthz', (req, res) => res.type('text').send('ok'));   // para monito
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* ---------- RNNoise (IA de supressão de ruído): acha os arquivos onde quer que a biblioteca os coloque ---------- */
+const NS_CACHE = { maxAge: '1d' };   // wasm/worklet quase nunca mudam: o celular não baixa de novo a cada entrada
 const nsRoot = path.join(__dirname, 'node_modules/@sapphi-red/web-noise-suppressor');
 const listAll = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(f => f.isDirectory() ? listAll(path.join(d, f.name)) : [path.join(d, f.name)]);
 try {
@@ -31,13 +32,13 @@ try {
     return find(n) || (n.endsWith('.js') ? all.find(f => /rnnoise/i.test(f) && /worklet/i.test(f) && f.endsWith('.js')) : null);
   };
   const entryPath = path.join(nsRoot, entry);
-  app.get('/ns/index.js', (req, res) => res.sendFile(entryPath));
+  app.get('/ns/index.js', (req, res) => res.sendFile(entryPath, NS_CACHE));
   for (const n of ['rnnoiseWorklet.js', 'rnnoise.wasm', 'rnnoise_simd.wasm']) {
     const f = resolve(n);
     if (!f) console.warn('RNNoise', n, 'NAO ENCONTRADO');
-    if (f) { app.get('/ns/' + n, (req, res) => res.sendFile(f)); if (n.endsWith('.js')) app.use('/ns', express.static(path.dirname(f))); }
+    if (f) { app.get('/ns/' + n, (req, res) => res.sendFile(f, NS_CACHE)); if (n.endsWith('.js')) app.use('/ns', express.static(path.dirname(f), NS_CACHE)); }
   }
-  app.use('/ns', express.static(path.dirname(entryPath)));
+  app.use('/ns', express.static(path.dirname(entryPath), NS_CACHE));
 } catch (e) { console.warn('RNNoise não encontrado (rode npm install):', e.message); }
 
 /* ---------- utilidades ---------- */
