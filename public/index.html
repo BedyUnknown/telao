@@ -70,9 +70,9 @@ details p{margin:8px 0;color:var(--dim);font-size:12px;line-height:1.5}
 .tile.idle .tph,.tile.wait .tph{display:grid}
 .tile.wait .tplay{display:none}
 #screens.focus .tile:not(.focused) .tph button{display:none}
-.tctl{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:6px;align-items:center;background:rgba(0,0,0,.65);padding:4px 6px;border-radius:10px;backdrop-filter:blur(6px);transition:opacity .25s}
-.tctl input[type=range]{flex:1;min-width:0;padding:0;border:0;background:transparent;accent-color:#fff;min-height:28px}
-.tctl button{min-width:34px;min-height:34px;padding:2px 8px;font-size:15px}
+.tctl{position:absolute;left:8px;right:8px;bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:rgba(0,0,0,.65);padding:4px 6px;border-radius:10px;backdrop-filter:blur(6px);transition:opacity .25s}
+.tctl input[type=range]{flex:1 1 90px;min-width:70px;padding:0;border:0;background:transparent;accent-color:#fff;min-height:28px}
+.tctl button{min-width:0;min-height:34px;padding:2px 10px;font-size:13px;white-space:nowrap}
 .tile.idle .tctl,.tile.wait .tctl,#screens.focus .tile:not(.focused) .tctl{display:none}
 .pr{display:flex;gap:8px;align-items:center;padding:3px 2px;font-size:14px}
 .pr .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -87,28 +87,33 @@ details p{margin:8px 0;color:var(--dim);font-size:12px;line-height:1.5}
 .cin input{flex:1;min-width:0}
 .vrow{display:flex;gap:10px;align-items:center}
 .vrow input[type=range]{flex:1;min-width:0;padding:0;border:0;background:transparent;accent-color:#fff}
-#stageGrid{position:absolute;inset:0;padding:8px}
+#stageGrid{position:absolute;inset:0;padding:calc(8px + env(safe-area-inset-top,0px)) calc(8px + env(safe-area-inset-right,0px)) 8px calc(8px + env(safe-area-inset-left,0px))}
 #bar{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));max-width:620px;margin:0 auto;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;padding:10px;background:rgba(0,0,0,.85);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(6px);transition:opacity .25s,transform .25s,visibility 0s}
 #bar.off{opacity:0;transform:translateY(14px);visibility:hidden;pointer-events:none;transition:opacity .25s,transform .25s,visibility 0s .25s}
-#pplP,#chatP{max-height:44vh;overflow:auto;padding-bottom:8px;border-bottom:1px solid var(--soft)}
-#chatP #chatList{height:26vh}
+#pplP,#chatP{padding-bottom:8px;border-bottom:1px solid var(--soft)}
+#pplP{overflow:auto;max-height:clamp(80px,calc(100dvh - 150px),44vh)}
+#chatP #chatList{height:clamp(80px,calc(100dvh - 230px),42vh)}
+#bar:has(#chatP:not([hidden]),#pplP:not([hidden]))>.row:nth-child(3),#bar:has(#chatP:not([hidden]),#pplP:not([hidden]))>.row:nth-child(5){display:none}   /* painel aberto: some a linha de volume para dar espaço */
 #stage:has(#bar.off) .tctl{opacity:0;pointer-events:none}
 .row{display:flex;gap:8px;align-items:center}
 .row button{flex:none;min-width:44px;padding:8px 12px}
 .row input[type=range]{flex:1;min-width:0;padding:0;border:0;background:transparent;accent-color:#fff}
 .row b{min-width:48px;text-align:right;font-size:14px}
-.row .nsInfo{flex:1;text-align:center}
+.row .nsInfo{flex:1;min-width:0;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #fab{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));z-index:2;transition:opacity .25s,visibility 0s}
 #fab.off{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s,visibility 0s .25s}
 #fab button{width:40px;height:40px;min-width:40px;min-height:40px;padding:0;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.55);opacity:.8;backdrop-filter:blur(6px)}
 [hidden]{display:none!important}
 @media(min-width:900px){#lobby{padding:28px}}
+@media(max-width:600px){#bar .nsInfo{display:none}#bar{padding:8px}.pr i{display:none}.pr input[type=range]{width:72px}.row button{padding:8px 10px}}
 @media(orientation:landscape) and (max-height:500px){   /* celular deitado: barra compacta, 2 colunas */
 #bar{max-width:720px;grid-template-columns:1fr auto;align-items:center;gap:6px 14px;padding:6px 10px;bottom:calc(8px + env(safe-area-inset-bottom,0px))}
 #bar #pplP,#bar #chatP{grid-column:1/-1}
 #bar .row:last-child{grid-column:1/-1;justify-content:center}
 #bar .row button{min-height:38px;padding:4px 10px}
 #bar .nsInfo{display:none}
+.tctl{left:4px;right:4px;bottom:4px;padding:2px 4px}
+.tctl button{min-height:30px}
 }
 </style></head><body>
 
@@ -181,7 +186,7 @@ details p{margin:8px 0;color:var(--dim);font-size:12px;line-height:1.5}
     <div id="pplP" hidden></div>
     <div id="chatP" hidden></div>
     <div class="row"><button id="vm">−</button><input type="range" id="vol" min="0" max="3" step="0.05" value="1" title="Volume de todas as transmissões"><button id="vp">+</button><b id="volT">100%</b></div>
-    <div class="row"><button id="mm">🎤</button><button id="enhV" title="Melhorar áudio do microfone">✨</button><span class="nsInfo"></span><button id="ppl" title="Pessoas na sala">👥 <span class="pcount">1</span></button><button id="chatB" title="Chat">💬</button><button id="leave">Sair</button></div>
+    <div class="row"><button id="mm">🎤</button><button id="enhV" title="Filtro de ruído do microfone">✨ Filtro</button><span class="nsInfo"></span><button id="ppl" title="Pessoas na sala">👥 <span class="pcount">1</span></button><button id="chatB" title="Chat">💬</button><button id="leave">Sair</button></div>
     <div class="row"><small id="resInfo"></small></div>
   </div>
   <div id="fab"><button id="fs" title="Tela cheia" aria-label="Tela cheia"></button></div>
@@ -271,8 +276,10 @@ class VoiceGate extends AudioWorkletProcessor {   // noise gate leve: abaixa o s
     let s = 0; for (let k = 0; k < n; k++) s += x[k] * x[k];
     this.pw = this.pw * 0.875 + (s / n) * 0.125;   // janela de ~20 ms
     const rms = Math.sqrt(this.pw);
-    this.floor = Math.min(0.05, rms < this.floor ? rms : this.floor * 1.00027);   // piso de ruído adaptativo
     this.t += n;
+    const was = this.t - this.last < sampleRate * 0.4;
+    if (rms < this.floor) this.floor = rms;                                         // piso de ruído adaptativo: desce sempre...
+    else if (!was) this.floor = Math.min(0.05, this.floor * 1.00027);               // ...e só sobe com o gate fechado (não "aprende" a voz como ruído)
     if (rms > Math.max(0.004, this.floor * 3)) this.last = this.t;
     const open = this.t - this.last < sampleRate * 0.4;
     const tgt = open ? 1 : 0.05, a = 1 - Math.exp(-1 / (sampleRate * (open ? 0.01 : 0.1)));
@@ -519,13 +526,20 @@ function attachVoice(p, s) {
   detachVoice(p);
   p.voice = s;
   // o Chrome só entrega áudio remoto ao WebAudio se o stream também estiver ligado a um elemento (mudo)
-  const el = document.createElement('audio'); el.autoplay = true; el.muted = true; el.srcObject = s; document.body.append(el);
-  const src = pctx.createMediaStreamSource(s), g = pctx.createGain(), an = pctx.createAnalyser();
+  const el = document.createElement('audio'); el.autoplay = true; el.srcObject = s; document.body.append(el);
+  if (outId && el.setSinkId) el.setSinkId(outId).catch(() => {});
+  const src = pctx.createMediaStreamSource(s), g = pctx.createGain(), gr = pctx.createGain(), an = pctx.createAnalyser();
   an.fftSize = 512;
-  g.gain.value = voiceVol[p.id] ?? 1;   // volume da voz desta pessoa
   src.connect(g); g.connect(pctx.destination); src.connect(an);
-  if (refBus) g.connect(refBus);
-  p.va = { el, src, g, an, buf: new Uint8Array(an.fftSize), hold: 0 };
+  if (refBus) { src.connect(gr); gr.connect(refBus); }   // referência do cancelamento de eco, no mesmo nível que toca
+  p.va = { el, src, g, gr, an, buf: new Uint8Array(an.fftSize), hold: 0 };
+  setVoiceGain(p, voiceVol[p.id] ?? 1);
+}
+function setVoiceGain(p, v) {   // até 100%: o próprio elemento de áudio (caminho mais confiável); acima: reforço pelo WebAudio
+  const va = p.va; if (!va) return;
+  if (v <= 1) { va.el.muted = false; va.el.volume = v; va.g.gain.value = 0; }
+  else { va.el.muted = true; va.g.gain.value = v; }
+  va.gr.gain.value = v;
 }
 function detachVoice(p) {
   if (!p.va) return;
@@ -679,7 +693,7 @@ function tileFor(id, own) {
   el.innerHTML = `<video autoplay playsinline muted></video>
     <div class="tph"><span class="tl"></span><button class="p tplay">▶ Assistir</button></div>
     <div class="tname"><span class="dot"></span><b></b></div>
-    <div class="tctl"><input type="range" class="tvol" min="0" max="3" step="0.05" value="1" title="Volume desta transmissão"><button class="tfocus" title="Focar / voltar à grade">⤢</button><button class="tfs" title="Tela cheia">⛶</button><button class="tstop" title="Parar de assistir">✕</button></div>`;
+    <div class="tctl"><input type="range" class="tvol" min="0" max="4" step="0.05" value="1" title="Volume desta transmissão"><button class="tfocus" title="Focar nesta tela / voltar à grade">Focar</button><button class="tfs" title="Tela cheia">Tela cheia</button><button class="tstop" title="Parar de assistir esta tela">Parar</button></div>`;
   t = { el, video: el.querySelector('video'), own: !!own, src: null, gain: null };
   tiles.set(id, t);
   const stop = f => e => { e.stopPropagation(); f(); };
@@ -687,7 +701,7 @@ function tileFor(id, own) {
   el.querySelector('.tstop').onclick = stop(() => watch(id, false));
   el.querySelector('.tfocus').onclick = stop(() => setFocus(id));
   const fsb = el.querySelector('.tfs');
-  if (!el.requestFullscreen && !el.webkitRequestFullscreen) fsb.hidden = true;
+  if (kind === 'mobile' || (!el.requestFullscreen && !el.webkitRequestFullscreen)) fsb.hidden = true;   // no celular a tela cheia é o botão do canto
   fsb.onclick = stop(() => (el.requestFullscreen || el.webkitRequestFullscreen).call(el));
   const vr = el.querySelector('.tvol'); vr.value = tileVol[id] ?? 1;
   vr.oninput = () => { tileVol[id] = +vr.value; if (t.gain) t.gain.gain.value = +vr.value; };
@@ -717,7 +731,7 @@ function removeTile(id) {
 function clearTiles() { [...tiles.keys()].forEach(removeTile); }
 function applyFocus() {
   screensEl.classList.toggle('focus', !!focusId);
-  for (const [k, t] of tiles) { const f = k === focusId; t.el.classList.toggle('focused', f); t.el.querySelector('.tfocus').textContent = f ? '⤡' : '⤢'; }
+  for (const [k, t] of tiles) { const f = k === focusId; t.el.classList.toggle('focused', f); t.el.querySelector('.tfocus').textContent = f ? 'Grade' : 'Focar'; }
 }
 function setFocus(id) { focusId = focusId === id ? null : id; applyFocus(); }
 function syncTiles() {   // um tile (placeholder "toque para assistir") para cada PC que está transmitindo
@@ -762,9 +776,9 @@ function renderPeople() {
     i.textContent = [p.owner && 'dono', p.pc ? 'PC' : 'celular', p.sharing && '📺', p.id === me && 'você'].filter(Boolean).join(' · ');
     d.append(dot, n, i);
     if (p.id !== me) {   // volume da voz desta pessoa
-      const r = document.createElement('input'); r.type = 'range'; r.min = 0; r.max = 2; r.step = 0.05;
-      r.value = voiceVol[p.id] ?? 1; r.title = 'Volume da voz de ' + p.nick;
-      r.oninput = () => { voiceVol[p.id] = +r.value; const q = pcs[p.id]; if (q && q.va) q.va.g.gain.value = +r.value; };
+      const r = document.createElement('input'); r.type = 'range'; r.min = 0; r.max = 4; r.step = 0.05;
+      r.value = voiceVol[p.id] ?? 1; r.title = 'Volume da voz de ' + p.nick + ' (até 400%)';
+      r.oninput = () => { voiceVol[p.id] = +r.value; const q = pcs[p.id]; if (q) setVoiceGain(q, +r.value); };
       d.append(r);
     }
     return d;
@@ -856,7 +870,7 @@ $('#restrictInfo').textContent = ro
   ? 'Na tela inteira, o áudio da call é removido da transmissão automaticamente.'
   : 'Este navegador não consegue tirar a call do áudio da tela inteira: use Chrome/Edge atualizado ou compartilhe uma janela.';
 $('#enhH').onchange = e => setEnh(e.target.checked);
-if (!(window.AudioContext && AudioContext.prototype.setSinkId)) $('#outDev').parentElement.hidden = true;
+if (!(window.HTMLMediaElement && HTMLMediaElement.prototype.setSinkId)) $('#outDev').parentElement.hidden = true;
 
 function beep(on) {   // bipe local (não entra na call): sobe = microfone ligado, desce = mutado
   const c = pctx; if (!c) return;
@@ -942,7 +956,11 @@ async function fillDevices() {
       .forEach(d => sel.add(new Option(d.label || 'Dispositivo', d.deviceId)));
   } catch {}
   inp.onchange = () => buildMic(inp.value).catch(() => alert('Não foi possível usar esse microfone'));
-  sel.onchange = () => { outId = sel.value; if (pctx && pctx.setSinkId) pctx.setSinkId(outId || '').catch(() => {}); };   // vozes, telas e bipe saem no mesmo dispositivo
+  sel.onchange = () => {
+    outId = sel.value;
+    if (pctx && pctx.setSinkId) pctx.setSinkId(outId || '').catch(() => {});
+    Object.values(pcs).forEach(q => q.va && q.va.el.setSinkId && q.va.el.setSinkId(outId).catch(() => {}));
+  };   // vozes, telas e bipe saem no mesmo dispositivo
 }
 
 $('#share').onclick = async () => {
