@@ -129,7 +129,7 @@ const passOk = (r, p) => crypto.timingSafeEqual(sha(p ?? ''), r.passHash);
 const err = (ws, msg, code) => tx(ws, { t: 'error', msg, code });
 
 function roster(r) {
-  const list = [...r.members.values()].map(p => ({ id: p.id, nick: p.nick, owner: p === r.owner, pc: p.kind === 'pc', sharing: !!p.sharing }));
+  const list = [...r.members.values()].map(p => ({ id: p.id, nick: p.nick, owner: p === r.owner, pc: p.kind === 'pc', sharing: !!p.sharing, muted: !!p.muted }));
   list.sort((a, b) => b.owner - a.owner);   // dono primeiro (ordem de entrada nos demais)
   r.members.forEach(p => tx(p, { t: 'roster', list }));
 }
@@ -226,6 +226,9 @@ wss.on('connection', (ws, req) => {
       } else if (m.t === 'sharing') {   // PC avisa que começou/parou de transmitir a tela
         const r = rooms.get(ws.room);
         if (r && ws.kind === 'pc' && r.members.get(ws.id) === ws) { ws.sharing = !!m.on; roster(r); }
+      } else if (m.t === 'mute') {   // avisa a sala que o microfone foi mutado/desmutado
+        const r = rooms.get(ws.room);
+        if (r && r.members.get(ws.id) === ws) { ws.muted = !!m.on; roster(r); }
       } else if (m.t === 'chat') {
         const r = rooms.get(ws.room);
         if (!r || r.members.get(ws.id) !== ws || typeof m.text !== 'string') return;

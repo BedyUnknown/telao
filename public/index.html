@@ -125,6 +125,10 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .tile.noprev video{visibility:hidden}
 .tile.noprev .tph{display:grid}
 .tile.noprev .tplay,.tile.noprev .tctl{display:none}
+.tname .tst{color:#aaa;font-size:11px;font-weight:400;margin-left:2px}
+#screens.focus .tile:not(.focused) .tst{display:none}
+#stage #screens.multi .tctl .tvol{display:block;min-width:120px}   /* 2+ telas: volume de cada transmissão também no celular */
+.pr.muted .pn{color:var(--dim)}
 .tile.mirror video{visibility:hidden}
 .tile.mirror .tph{display:grid}
 .tile.mirror .tplay{display:none}
@@ -807,6 +811,7 @@ function setEmptyText(t) { emptyEl.textContent = t; updateEmpty(); }
 function updateEmpty() {
   emptyEl.hidden = tiles.size > 0;
   $$('.tfocus').forEach(b => { b.hidden = tiles.size < 2; });   // focar só faz sentido com mais de uma tela
+  screensEl.classList.toggle('multi', [...tiles.values()].filter(t => !t.own).length >= 2);
   if (tiles.size < 2 && focusId) { focusId = null; applyFocus(); }
 }
 setEmptyText(emptyDefault);
@@ -817,7 +822,7 @@ function tileFor(id, own) {
   const el = document.createElement('div'); el.className = 'tile idle'; el.dataset.id = id;
   el.innerHTML = `<video autoplay playsinline muted></video>
     <div class="tph"><span class="tl"></span><button class="p tplay">▶ Assistir</button><button class="tshow" hidden>Mostrar assim mesmo</button></div>
-    <div class="tname"><span class="dot"></span><b></b></div>
+    <div class="tname"><span class="dot"></span><b></b><small class="tst"></small></div>
     <div class="tctl"><input type="range" class="tvol" min="0" max="4" step="0.05" value="1" title="Volume desta transmissão"><button class="tfocus" title="Focar nesta tela / voltar à grade">Focar</button><button class="tfs" title="Tela cheia">Tela cheia</button><button class="tstop" title="Parar de assistir esta tela">Parar</button></div>`;
   t = { el, video: el.querySelector('video'), own: !!own, src: null, gain: null };
   tiles.set(id, t);
@@ -875,11 +880,15 @@ function applyFocus() {
   for (const [k, t] of tiles) { const f = k === focusId; t.el.classList.toggle('focused', f); t.el.querySelector('.tfocus').textContent = f ? 'Grade' : 'Focar'; }
 }
 function setFocus(id) { focusId = focusId === id ? null : id; applyFocus(); }
+const isMuted = id => !!(roster.find(p => p.id === id) || {}).muted;
+function refreshTileNames() {   // 🔇 ao lado do nick de quem está mutado
+  for (const [id, t] of tiles) t.el.querySelector('.tname b').textContent = t.own ? (isMuted(me) ? 'Você 🔇' : 'Você') : (isMuted(id) ? '🔇 ' : '') + nickOf(id);
+}
 function syncTiles() {   // um tile (placeholder "toque para assistir") para cada PC que está transmitindo
   const sharing = new Set(roster.filter(p => p.sharing && p.id !== me).map(p => p.id));
   for (const id of sharing) {
     const t = tileFor(id);
-    t.el.querySelector('.tname b').textContent = nickOf(id);
+    t.el.querySelector('.tname b').textContent = (isMuted(id) ? '🔇 ' : '') + nickOf(id);
     if (!watching.has(id)) setTileState(id, 'idle');
   }
   for (const [id, t] of [...tiles]) if (!t.own && !sharing.has(id)) { removeTile(id); watching.delete(id); }
@@ -913,9 +922,9 @@ $('#prev').onchange = e => { store.set('prev', e.target.checked ? '1' : '0'); if
 /* ================= pessoas e chat ================= */
 function renderPeople() {
   const row = p => {
-    const d = document.createElement('div'); d.className = 'pr'; d.dataset.id = p.id;
+    const d = document.createElement('div'); d.className = 'pr' + (p.muted ? ' muted' : ''); d.dataset.id = p.id;
     const dot = document.createElement('span'); dot.className = 'dot';
-    const n = document.createElement('span'); n.className = 'pn'; n.textContent = p.nick;
+    const n = document.createElement('span'); n.className = 'pn'; n.textContent = (p.muted ? '🔇 ' : '') + p.nick;
     const i = document.createElement('i');
     i.textContent = [p.owner && 'dono', p.pc ? 'PC' : 'celular', p.sharing && '📺', p.id === me && 'você'].filter(Boolean).join(' · ');
     d.append(dot, n, i);
@@ -953,6 +962,7 @@ function showRoom() {
   if (roomShown) return;
   roomShown = true;
   clearInterval(roomsTimer);
+  clearInterval(statsTimer); statsTimer = setInterval(viewStats, 2000);
   $('#lobby').hidden = true;
   if (kind === 'pc') {
     $('#roomPC').hidden = false;
@@ -964,7 +974,6 @@ function showRoom() {
     $('#stage').style.display = 'block';
     $('#stageGrid').append(screensEl); $('#pplP').append($('#people')); $('#chatP').append($('#chat'));
     if (!mic) { $('#mm').hidden = true; $('#enhV').hidden = true; } else setMmUi();
-    clearInterval(statsTimer); statsTimer = setInterval(viewStats, 1500);
     showBar();
     acquireWakeLock();
   }
@@ -978,7 +987,8 @@ function handle(m) {
     showRoom();
     $('#roomCode').textContent = sess.room;
     setEmptyText(emptyDefault);
-    if (screen) { startOwnTile(); send({ t: 'sharing', on: true }); }   // reconexão: volta a anunciar a transmissão
+    if (screen) { startOwnTile(); send({ t: 'sharing', on: true }); }
+    if (mic && !mic.getAudioTracks()[0].enabled) send({ t: 'mute', on: true });   // reconexão: mantém o aviso de mutado   // reconexão: volta a anunciar a transmissão
   } else if (m.t === 'history') {
     $('#chatList').replaceChildren();
     m.list.forEach(addChat);
@@ -986,7 +996,7 @@ function handle(m) {
   } else if (m.t === 'chat') addChat(m.msg);
   else if (m.t === 'roster') {
     roster = m.list; ownerId = (m.list.find(p => p.owner) || {}).id || ownerId;
-    renderPeople(); syncTiles();
+    renderPeople(); syncTiles(); refreshTileNames();
   } else if (m.t === 'error') {
     if (sess && sess.up) {   // reconectando: tenta de novo mais tarde (sem estourar o limite de tentativas do servidor)
       nextDelay = m.code === 'blocked' ? 60000 : m.code === 'exists' ? 4000 : 10000;
@@ -1036,6 +1046,7 @@ function micToggle() {
   const t = mic.getAudioTracks()[0]; t.enabled = !t.enabled;
   $('#mmH').textContent = t.enabled ? '🎤 Mutar microfone' : '🔇 Microfone mutado (tocar p/ ligar)';
   beep(t.enabled);
+  send({ t: 'mute', on: !t.enabled });
 }
 $('#mmH').onclick = micToggle;
 
@@ -1197,15 +1208,14 @@ function stopShare() {
 $('#stop').onclick = stopShare;
 
 /* ================= celular: estatísticas, mic, barra que some, tela cheia ================= */
-async function viewStats() {
-  let id = focusId && tiles.get(focusId) && !tiles.get(focusId).own ? focusId : null;
-  if (!id) for (const [k, t] of tiles) if (!t.own && t.el.classList.contains('live')) { id = k; break; }
-  const p = id && pcs[id];
-  if (!p) { $('#resInfo').textContent = ''; return; }
-  (await p.pc.getStats()).forEach(r => {
-    if (r.type === 'inbound-rtp' && r.kind === 'video')
-      $('#resInfo').textContent = `${nickOf(id)}: ${r.frameWidth || 0}x${r.frameHeight || 0} @ ${Math.round(r.framesPerSecond || 0)}fps`;
-  });
+async function viewStats() {   // resolução e FPS recebidos, em cada tela (no próprio nome do tile)
+  for (const [id, t] of tiles) {
+    if (t.own) continue;
+    const el = t.el.querySelector('.tst'), p = pcs[id];
+    if (!p || !t.el.classList.contains('live')) { el.textContent = ''; continue; }
+    try { (await p.pc.getStats()).forEach(r => { if (r.type === 'inbound-rtp' && r.kind === 'video') el.textContent = `${r.frameWidth || 0}×${r.frameHeight || 0} · ${Math.round(r.framesPerSecond || 0)}fps`; }); } catch {}
+  }
+  $('#resInfo').textContent = '';
 }
 const IC = {
   mic: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
@@ -1225,6 +1235,7 @@ $('#mm').onclick = () => {
   if (!mic) return;
   const t = mic.getAudioTracks()[0]; t.enabled = !t.enabled;
   setMmUi();
+  send({ t: 'mute', on: !t.enabled });
 };
 $('#enhV').onclick = () => { setEnh(!enh); $('#enhV').classList.toggle('dim', !enh); };
 $('#leave').onclick = leave;
